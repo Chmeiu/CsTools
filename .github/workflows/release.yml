@@ -1,0 +1,81 @@
+name: Build and publish CsTools release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install Inno Setup
+        run: choco install innosetup --yes --no-progress
+
+      - name: Download bundled tools
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Path core -Force | Out-Null
+          $ffmpegArchive = Join-Path $env:RUNNER_TEMP 'ffmpeg.zip'
+          $ffmpegRoot = Join-Path $env:RUNNER_TEMP 'ffmpeg'
+          Invoke-WebRequest -Uri 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip' -OutFile $ffmpegArchive
+          Expand-Archive -LiteralPath $ffmpegArchive -DestinationPath $ffmpegRoot -Force
+          $ffmpegBin = Get-ChildItem $ffmpegRoot -Directory | Select-Object -First 1
+          if ($null -eq $ffmpegBin) { throw 'No se encontró el directorio extraído de FFmpeg.' }
+          Copy-Item (Join-Path $ffmpegBin.FullName 'bin\ffmpeg.exe') core\ffmpeg.exe
+          Copy-Item (Join-Path $ffmpegBin.FullName 'bin\ffprobe.exe') core\ffprobe.exe
+          Invoke-WebRequest -Uri 'https://nodejs.org/dist/v22.14.0/win-x64/node.exe' -OutFile node.exe
+          Invoke-WebRequest -Uri 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe' -OutFile core\yt-dlp.exe
+          foreach ($required in @('core\ffmpeg.exe', 'core\ffprobe.exe', 'core\yt-dlp.exe', 'node.exe')) {
+            if (-not (Test-Path -LiteralPath $required)) { throw "No se descargó el componente requerido: $required" }
+          }
+
+      - name: Install project dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Validate release tag matches application version
+        shell: pwsh
+        run: |
+          $version = python -c "from version import APP_VERSION; print(APP_VERSION)"
+          if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -ne "v$version") {
+            throw "Tag $env:GITHUB_REF_NAME does not match version.py (v$version)."
+          }
+
+      - name: Build installer
+        shell: pwsh
+        run: .\build_release.ps1
+
+      - name: Generate installer checksum
+        shell: pwsh
+        run: |
+          $installer = 'release\installer\Instalar_CsTools.exe'
+          if (-not (Test-Path -LiteralPath $installer)) { throw "Installer not found: $installer" }
+          $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $installer).Hash.ToLowerInvariant()
+          "$hash  Instalar_CsTools.exe" | Set-Content -LiteralPath 'release\installer\Instalar_CsTools.exe.sha256' -Encoding ascii
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: CsTools ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            release/installer/Instalar_CsTools.exe
+            release/installer/Instalar_CsTools.exe.sha256
