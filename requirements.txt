@@ -1,0 +1,4 @@
+pywebview>=6.0,<7
+yt-dlp>=2025.10.22
+yt-dlp-ejs>=0.8.0,<1
+pyinstaller>=6.17

@@ -1,0 +1,1012 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0c0e">
+  <title>CsTools</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0c0e;
+      --sidebar: #101114;
+      --panel: #121316;
+      --raised: #17191d;
+      --line: #25272c;
+      --line-strong: #34373e;
+      --text: #e4e6e9;
+      --muted: #92969f;
+      --subtle: #656a74;
+      --accent: #9baa70;
+      --accent-bg: #1c2117;
+      --accent-line: #343d28;
+      --danger: #c37c7c;
+      --radius: 8px;
+      --font: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { scroll-behavior: smooth; }
+    body { min-width: 320px; min-height: 100vh; margin: 0; background: var(--bg); color: var(--text); font: 15.5px/1.5 var(--font); -webkit-font-smoothing: antialiased; zoom: 1.03; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .48; }
+    .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 2; display: flex; width: 250px; flex-direction: column; padding: 25px 14px 18px; border-right: 1px solid var(--line); background: var(--sidebar); }
+    .brand { display: flex; align-items: center; gap: 12px; padding: 0 10px; margin-bottom: 34px; }
+    .brand-icon { display: grid; width: 32px; height: 32px; place-items: center; border: 1px solid #44494d; border-radius: 6px; color: #d8dadd; font-size: 12px; font-weight: 700; }
+    .brand-name { font-size: 16px; font-weight: 650; letter-spacing: -.15px; }
+    .topbar-brand { background: linear-gradient(110deg, #aab5c6, #c9b0d3, #a6c9c1, #c7c5a5, #aab5c6); background-size: 240% 100%; color: transparent; background-clip: text; -webkit-background-clip: text; animation: topbar-brand-shift 18s ease-in-out infinite; }
+    @keyframes topbar-brand-shift { to { background-position: 100% 50%; } }
+    @media (prefers-reduced-motion: reduce) { .topbar-brand { animation: none; background-position: 50% 50%; } }
+    .nav-heading { padding: 0 10px; margin: 0 0 9px; color: var(--subtle); font-size: 11px; font-weight: 650; letter-spacing: .1em; text-transform: uppercase; }
+    .nav-list { display: grid; gap: 2px; }
+    .nav-item { display: flex; min-height: 42px; align-items: center; gap: 11px; padding: 0 11px; border: 1px solid transparent; border-radius: 6px; color: #a7abb2; font-size: 13px; font-weight: 500; text-decoration: none; }
+    .nav-item:hover { background: #191b1f; color: #d6d8dd; }
+    .nav-item.active { border-color: #30342b; background: #1a1d17; color: #d9e3c3; }
+    .nav-icon { display: grid; width: 18px; place-items: center; color: #858a93; font-size: 16px; }
+    .nav-item.active .nav-icon { color: #b6c58e; }
+    .nav-divider { height: 1px; margin: 15px 8px; background: var(--line); }
+    .sidebar-bottom { margin-top: auto; }
+    .mode-label { display: flex; align-items: center; gap: 8px; padding: 0 10px 12px; color: var(--subtle); font-size: 11px; }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #78835f; }
+
+    .main { max-width: 1600px; margin-left: 250px; padding: 0 clamp(28px, 4vw, 70px) 65px; }
+    .topbar { display: flex; height: 64px; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+    .crumbs { color: var(--subtle); font-size: 12px; }
+    .crumbs strong { color: #b8bbc1; font-weight: 550; }
+    .top-right { display: flex; align-items: center; gap: 14px; color: var(--subtle); font-size: 12px; }
+    .version { padding: 4px 8px; border: 1px solid var(--line); border-radius: 4px; color: #8e929a; font-size: 10px; }
+    .update-button { min-height: 30px; padding: 0 9px; border: 1px solid var(--line-strong); border-radius: 4px; background: #17191d; color: #c9cdd3; font: inherit; font-size: 11px; }
+    .update-button:hover:not(:disabled) { border-color: #596248; color: #e0e7d0; }
+    .update-banner { display: none; gap: 12px; align-items: center; padding: 12px 14px; border: 1px solid var(--accent-line); border-radius: 6px; background: var(--accent-bg); color: #d9e3c3; font-size: 13px; }
+    .update-banner.visible { display: flex; }
+    .update-banner span { flex: 1; }
+    .update-notes { margin: 6px 0 0; color: var(--muted); white-space: pre-wrap; font-size: 12px; max-height: 120px; overflow: auto; }
+    .page-title { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; padding: 32px 0 25px; }
+    h1 { margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -.5px; }
+    .page-description { margin: 6px 0 0; color: var(--muted); font-size: 15px; }
+    .page-context { color: var(--subtle); font-size: 9px; }
+    .section { margin-top: 28px; scroll-margin-top: 18px; }
+    .section-header { display: flex; min-height: 35px; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+    .section-title { margin: 0; font-size: 18px; font-weight: 600; }
+    .section-caption { margin: 4px 0 0; color: var(--subtle); font-size: 14px; }
+    .section-id { color: #777b83; font-size: 11px; font-variant-numeric: tabular-nums; }
+    .panel { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); }
+    .download-panel { padding: 20px; }
+    .tabs { display: flex; width: fit-content; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 6px; background: #0e0f11; }
+    .tab { min-height: 38px; padding: 0 16px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); font-size: 14px; }
+    .tab.selected { background: #25272c; color: #e3e5e8; }
+    .form-label { display: block; margin: 20px 0 8px; color: #b8bbc1; font-size: 14px; font-weight: 550; }
+    .url-row { display: flex; gap: 10px; }
+    .input { display: flex; min-width: 0; min-height: 48px; flex: 1; align-items: center; gap: 10px; padding: 0 13px; border: 1px solid var(--line-strong); border-radius: 5px; background: #0e0f11; color: #737780; font-size: 15px; }
+    .input:focus-within { border-color: #596248; }
+    .input input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text); font-size: 15px; }
+    .input input::placeholder { color: #737780; }
+    .url-clear { display: grid; width: 28px; height: 28px; flex: 0 0 28px; place-items: center; border: 0; border-radius: 4px; background: transparent; color: var(--muted); font-size: 20px; line-height: 1; }
+    .url-clear:hover { background: #25272c; color: var(--text); }
+    .input-icon { color: #858a93; font-size: 12px; }
+    .button { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 8px; padding: 0 16px; border: 1px solid #41444a; border-radius: 5px; background: #222429; color: #d7d9de; font-size: 14px; font-weight: 550; white-space: nowrap; }
+    .button:hover:not(:disabled) { background: #2a2c32; }
+    .button.primary { border-color: #596248; background: #343b29; color: #e0e7d0; }
+    .button.primary:hover:not(:disabled) { background: #414a32; }
+    .button.danger { border-color: #563a3c; background: #302021; color: #e2bfc0; }
+    .button.small { min-height: 34px; padding: 0 11px; font-size: 11px; }
+    .media-row { display: none; grid-template-columns: minmax(170px, 230px) minmax(220px, 1fr) minmax(160px, 210px); align-items: center; gap: 18px; padding: 16px; margin-top: 14px; border: 1px solid var(--line); border-radius: 6px; background: #0e0f11; }
+    .media-row.visible { display: grid; }
+    .thumbnail { position: relative; display: grid; min-height: 132px; overflow: hidden; place-items: center; border: 1px solid #292c31; border-radius: 4px; background: #191b1f; }
+    .thumbnail img { width: 100%; height: 100%; position: absolute; inset: 0; object-fit: cover; }
+    .thumbnail.playlist-collage::before { display: none; }
+    .thumbnail .collage-item { width: 50%; height: 50%; }
+    .thumbnail .collage-item-1 { inset: 0 auto auto 0; }
+    .thumbnail .collage-item-2 { inset: 0 0 auto auto; }
+    .thumbnail .collage-item-3 { inset: auto auto 0 0; }
+    .thumbnail .collage-item-4 { inset: auto 0 0 auto; }
+    .thumbnail::before { position: absolute; right: 12%; bottom: -28px; width: 70%; height: 72px; border-radius: 50% 50% 0 0; background: #131519; content: ""; }
+    .play-mark { z-index: 1; display: grid; width: 27px; height: 27px; place-items: center; padding-left: 2px; border: 1px solid #999da3; border-radius: 50%; background: rgba(10,11,13,.4); color: #e3e4e6; font-size: 9px; }
+    .duration { position: absolute; right: 5px; bottom: 5px; z-index: 1; padding: 2px 4px; border-radius: 3px; background: rgba(8,9,10,.8); color: #dbdde0; font-size: 8px; }
+    .playlist-badge { position: absolute; top: 7px; left: 7px; z-index: 2; padding: 4px 7px; border: 1px solid #ffffff30; border-radius: 4px; background: #101114dd; color: #e4e6e9; font-size: 10px; font-weight: 650; letter-spacing: .04em; }
+    .media-info { min-width: 0; }
+    .field-name { margin-bottom: 6px; color: var(--subtle); font-size: 11px; }
+    .media-title { overflow: hidden; margin: 0; color: #d7d9dd; font-size: 15px; font-weight: 550; line-height: 1.5; text-overflow: ellipsis; }
+    .media-byline { margin-top: 6px; color: var(--muted); font-size: 12px; }
+    .metadata { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 11px; color: #92969e; font-size: 12px; }
+    .quality { display: grid; gap: 2px; }
+    .quality[hidden] { display: none; }
+    .quality[hidden] { display: none; }
+    .quality-label { margin-bottom: 4px; color: var(--subtle); font-size: 11px; }
+    .quality select, .select { min-height: 36px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 4px; outline: 0; background: #0e0f11; color: #c3c6cc; font-size: 12px; }
+    .panel-footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding-top: 14px; margin-top: 14px; border-top: 1px solid var(--line); }
+    .destination { display: flex; min-width: 0; align-items: center; gap: 9px; color: var(--muted); font-size: 12px; }
+    .destination strong { overflow: hidden; color: #c4c7cc; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+    .status-line { display: none; align-items: center; gap: 9px; padding-top: 10px; }
+    .status-line.visible { display: flex; }
+    .progress { height: 4px; flex: 1; overflow: hidden; border-radius: 4px; background: #27292f; }
+    .progress-fill { width: 0; height: 100%; border-radius: inherit; background: #9baa70; transition: width .2s ease; }
+    .status-message { min-width: 140px; color: var(--muted); font-size: 12px; }
+
+    .optimizer-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(270px, .9fr); gap: 9px; }
+    .settings-panel, .file-panel, .compare-panel { padding: 18px; }
+    .panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+    .panel-heading h3 { margin: 0; font-size: 14px; font-weight: 600; }
+    .panel-heading span { color: var(--subtle); font-size: 10px; }
+    .setting-group + .setting-group { padding-top: 10px; margin-top: 10px; border-top: 1px solid var(--line); }
+    .setting-label { margin: 0 0 9px; color: var(--subtle); font-size: 10px; font-weight: 650; letter-spacing: .07em; text-transform: uppercase; }
+    .setting-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; }
+    .setting { display: flex; align-items: center; gap: 9px; min-height: 24px; color: #c1c4ca; font-size: 12px; }
+    .switch { appearance: none; position: relative; width: 30px; height: 17px; flex: 0 0 30px; margin: 0; border: 1px solid #464950; border-radius: 20px; background: #25272c; cursor: pointer; }
+    .switch::after { position: absolute; top: 2px; left: 2px; width: 11px; height: 11px; border-radius: 50%; background: #858992; content: ""; transition: left .14s ease; }
+    .switch:checked { border-color: #586148; background: #343c29; }
+    .switch:checked::after { left: 16px; background: #afbd88; }
+    .select-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 11px; }
+    .select-wrap { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+    .drop-zone { position: relative; display: grid; min-height: 190px; overflow: hidden; place-items: center; padding: 14px; border: 1px dashed #3b3e45; border-radius: 5px; background: #0e0f11; text-align: center; cursor: pointer; }
+    .drop-zone strong { display: block; color: #c9cbd0; font-size: 13px; font-weight: 550; }
+    .drop-zone p { margin: 4px 0 0; color: var(--subtle); font-size: 12px; }
+    .drop-zone.drag-over { border-color: #9baa70 !important; background: #171b13; }
+    .drop-preview { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #0b0c0e; pointer-events: none; }
+    .drop-zone.has-file { border-style: solid; border-color: #34372d; }
+    .drop-zone.has-file::after { position: absolute; inset: 45% 0 0; background: linear-gradient(transparent, #090a0ccc); content: ""; pointer-events: none; }
+    .drop-prompt, .drop-file-caption { position: relative; z-index: 1; pointer-events: none; }
+    .drop-zone.has-file .drop-prompt { display: none; }
+    .drop-file-caption { display: none; align-self: end; justify-self: start; max-width: 85%; padding: 28px 8px 3px; color: #f0f1f3; font-size: 13px; overflow-wrap: anywhere; text-align: left; text-shadow: 0 1px 5px #000; }
+    .drop-zone.has-file .drop-file-caption { display: block; }
+    .drop-clear { position: absolute; top: 10px; right: 10px; z-index: 2; min-height: 32px; border-color: #ffffff40; background: #101114d9; }
+    .file-row { display: none; align-items: center; gap: 8px; padding: 9px 0 0; margin-top: 9px; border-top: 1px solid var(--line); }
+    .file-row.visible { display: flex; }
+    .file-icon { display: grid; width: 27px; height: 29px; flex: 0 0 27px; place-items: center; border: 1px solid var(--line-strong); border-radius: 4px; background: #1b1d21; color: #b6bbc3; font-size: 8px; font-weight: 700; }
+    .file-copy { min-width: 0; flex: 1; }
+    .file-name { overflow: hidden; color: #c9cbd0; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    .file-meta { margin-top: 4px; color: var(--subtle); font-size: 10px; }
+    .file-state { color: #a9b48e; font-size: 10px; }
+    .output-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 9px; margin-top: 9px; border-top: 1px solid var(--line); }
+    .output-path { overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .compare-panel { padding: 13px; }
+    .compare-panel:fullscreen, .compare-panel.compare-expanded { display: grid; width: 100vw; height: 100vh; height: 100dvh; max-height: 100vh; grid-template-rows: auto minmax(0, 1fr) auto; gap: 12px; padding: 20px; margin: 0; border: 0; border-radius: 0; background: var(--bg); }
+    .compare-panel:fullscreen .panel-heading, .compare-panel.compare-expanded .panel-heading { margin-bottom: 0; }
+    .compare-viewers { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .viewer { --processing-blur: 18px; position: relative; display: grid; min-height: 190px; overflow: hidden; place-items: center; border: 1px solid #292c31; border-radius: 5px; background: #0d0e10; }
+    .compare-panel:fullscreen .compare-viewers, .compare-panel.compare-expanded .compare-viewers { min-height: 0; }
+    .compare-panel:fullscreen .viewer, .compare-panel.compare-expanded .viewer { min-height: 0; }
+    .viewer-preview, .viewer video { width: 100%; height: 100%; min-height: 190px; position: absolute; inset: 0; }
+    .compare-panel:fullscreen .viewer-preview, .compare-panel:fullscreen .viewer video, .compare-panel.compare-expanded .viewer-preview, .compare-panel.compare-expanded .viewer video { min-height: 0; }
+    .viewer-preview { z-index: 0; object-fit: cover; background: #08090a; transition: filter .45s ease, transform .45s ease; }
+    .viewer video { z-index: 0; object-fit: contain; background: #08090a; opacity: 0; transition: opacity .2s ease; }
+    .viewer video.ready { opacity: 1; }
+    .viewer-label { position: absolute; top: 9px; left: 9px; z-index: 2; padding: 4px 7px; border: 1px solid #3d4046; border-radius: 3px; background: rgba(10,11,12,.8); color: #d3d5d9; font-size: 11px; pointer-events: none; }
+    .viewer-play { z-index: 2; display: grid; width: 25px; height: 25px; place-items: center; border: 1px solid #92969d; border-radius: 50%; color: #e2e3e5; font-size: 8px; transition: opacity .16s ease; }
+    .viewer.playing .viewer-play { opacity: 0; pointer-events: none; }
+    .viewer-caption { position: absolute; right: 9px; bottom: 9px; left: 9px; z-index: 2; display: flex; justify-content: space-between; gap: 8px; color: #bfc2c8; font-size: 11px; pointer-events: none; }
+    .viewer.pending .viewer-preview, .viewer.processing .viewer-preview { filter: blur(var(--processing-blur)); transform: scale(1.08); }
+    .viewer.processing::after { position: absolute; inset: 0; z-index: 1; background: linear-gradient(110deg, transparent 20%, #ffffff0a 45%, #ffffff1a 50%, #ffffff0a 55%, transparent 80%); content: ""; pointer-events: none; animation: processing-sweep 2.2s ease-in-out infinite; }
+    .viewer.processing .viewer-play { display: none; }
+    .processing-indicator { position: absolute; top: 50%; left: 50%; z-index: 3; display: grid; width: min(250px, calc(100% - 32px)); gap: 8px; justify-items: center; padding: 12px 14px; border: 1px solid #ffffff20; border-radius: 6px; background: #0b0c0ed9; color: #e1e3e6; font-size: 11px; transform: translate(-50%, -50%); }
+    .processing-indicator[hidden] { display: none; }
+    .processing-spinner { width: 18px; height: 18px; border: 2px solid #727960; border-top-color: #d1dfae; border-radius: 50%; animation: processing-spin .8s linear infinite; }
+    .processing-track { width: 100%; height: 3px; overflow: hidden; border-radius: 3px; background: #30322d; }
+    .processing-fill { width: 0; height: 100%; border-radius: inherit; background: #a7b67e; transition: width .45s ease; }
+    @keyframes processing-spin { to { transform: rotate(360deg); } }
+    @keyframes processing-sweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+    .compare-controls { display: flex; align-items: center; justify-content: center; gap: 9px; padding-top: 10px; }
+    .control { display: grid; width: 24px; height: 24px; place-items: center; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--raised); color: #c6c8ce; font-size: 8px; }
+    .timeline { width: min(230px, 32vw); accent-color: #a5b27e; }
+    .timecode { color: var(--muted); font: 11px/1.2 ui-monospace, Consolas, monospace; }
+    .toast { position: fixed; right: 22px; bottom: 22px; z-index: 5; display: none; max-width: min(560px, calc(100vw - 32px)); padding: 13px 16px; border: 1px solid #484149; border-radius: 6px; background: #19171a; color: #e0dadd; font-size: 13px; box-shadow: 0 8px 28px #0008; }
+    .toast.visible { display: block; }
+    .toast.error { border-color: #68484b; color: #eccdce; }
+    .footnote { padding-top: 18px; color: #646872; font-size: 10px; text-align: right; }
+    .nav-icon { width: 18px; height: 18px; flex: 0 0 18px; color: #858a93; }
+    .nav-icon svg { display: block; width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.65; }
+    .analysis-skeleton { display: none; grid-template-columns: minmax(170px, 230px) minmax(220px, 1fr) minmax(160px, 210px); align-items: center; gap: 18px; padding: 16px; margin-top: 14px; border: 1px solid var(--line); border-radius: 6px; background: #0e0f11; }
+    .analysis-skeleton.visible { display: grid; }
+    .skeleton-block { position: relative; overflow: hidden; border-radius: 4px; background: #1c1e22; }
+    .skeleton-block::after { position: absolute; inset: 0; background: linear-gradient(100deg, transparent 20%, #ffffff0b 45%, #ffffff14 50%, #ffffff0b 55%, transparent 80%); content: ""; transform: translateX(-100%); animation: skeleton-shimmer 1.5s ease-in-out infinite; }
+    .skeleton-thumbnail { min-height: 132px; }
+    .skeleton-copy { display: grid; gap: 10px; }
+    .skeleton-line { height: 12px; }
+    .skeleton-line.long { width: 82%; height: 18px; }
+    .skeleton-line.short { width: 45%; }
+    .skeleton-select { width: 75%; height: 36px; }
+    .skeleton-caption { margin-top: 2px; color: var(--muted); font-size: 12px; }
+    @keyframes skeleton-shimmer { to { transform: translateX(100%); } }
+    @media (prefers-reduced-motion: reduce) {
+      .skeleton-block::after, .viewer.processing::after, .processing-spinner { animation-duration: 3s; }
+      .viewer-preview, .processing-fill { transition-duration: 1.2s; }
+    }
+    @media (max-width: 940px) {
+      .sidebar { width: 220px; }
+      .main { margin-left: 220px; padding-right: 26px; padding-left: 26px; }
+      .media-row, .analysis-skeleton { grid-template-columns: minmax(140px, 180px) minmax(150px, 1fr); }
+      .quality { grid-column: 1 / -1; grid-template-columns: repeat(4, auto); align-items: center; justify-content: start; }
+      .quality-label { margin-right: 4px; }
+      .optimizer-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 680px) {
+      .sidebar { position: static; width: auto; height: auto; padding: 12px 14px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .brand { margin: 0 0 10px; }
+      .nav-heading, .nav-divider, .sidebar-bottom { display: none; }
+      .nav-list { display: flex; overflow-x: auto; }
+      .nav-item { min-height: 38px; flex: 0 0 auto; }
+      .main { margin-left: 0; padding: 0 15px 35px; }
+      .page-title { padding-top: 19px; }
+    }
+    @media (max-width: 440px) {
+      .main { padding-right: 10px; padding-left: 10px; }
+      .page-context { display: none; }
+      .download-panel, .settings-panel, .file-panel, .compare-panel { padding: 10px; }
+      .tabs { width: 100%; justify-content: space-between; }
+      .tab { padding: 0 10px; font-size: 12px; }
+      .url-row { flex-direction: column; }
+      .url-row .button { width: 100%; }
+      .media-row, .analysis-skeleton { grid-template-columns: 1fr; }
+      .thumbnail { min-height: 125px; }
+      .skeleton-thumbnail { min-height: 125px; }
+      .skeleton-select { width: 100%; }
+      .quality { grid-template-columns: repeat(3, auto); }
+      .quality-label { grid-column: 1 / -1; }
+      .panel-footer { align-items: stretch; flex-direction: column; }
+      .panel-footer > .button { width: 100%; }
+      .compare-viewers { gap: 5px; }
+      .viewer, .viewer video { min-height: 100px; }
+      .viewer-caption span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    }
+    @media (max-width: 440px) {
+      .tab { font-size: 14px; }
+      .nav-item { min-height: 44px; font-size: 14px; }
+      .viewer, .viewer video { min-height: 115px; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar" aria-label="Navegación">
+    <div class="brand"><div class="brand-icon">CS</div><div class="brand-name">CsTools</div></div>
+    <p class="nav-heading">Procesamiento</p>
+    <nav class="nav-list" aria-label="Módulos">
+      <a class="nav-item active" href="#descargas"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.5v11m0 0 4-4m-4 4-4-4"/><path d="M5 15.5v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg></span>Descarga de medios</a>
+    </nav>
+    <div class="nav-divider"></div>
+    <p class="nav-heading">Herramientas</p>
+    <div class="nav-list">
+      <a class="nav-item" href="#optimizador"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="12.5" rx="2.5"/><path d="m10 8.5 5 2.25-5 2.25z"/><path d="M8 20h8m-4-3v3"/></svg></span>Optimizador de video</a>
+      <a class="nav-item" href="#comparador"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="7" height="15" rx="1.8"/><rect x="13.5" y="4.5" width="7" height="15" rx="1.8"/><path d="M10.5 9h3m-3 6h3"/></svg></span>Comparador</a>
+    </div>
+    <div class="sidebar-bottom"><div class="mode-label"><span class="status-dot"></span>Procesamiento local</div></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar"><div class="crumbs">CsTools <span aria-hidden="true">/</span> <strong class="topbar-brand">CsTools</strong></div><div class="top-right"><span class="version" id="app-version">LOCAL</span><button class="update-button" id="check-updates" type="button">Buscar actualizaciones</button></div></header>
+    <div class="update-banner" id="update-banner" role="status"><span id="update-summary"></span><button class="button small" id="install-update" type="button" hidden>Descargar e instalar</button></div><p class="update-notes" id="update-notes" hidden></p>
+    <div class="page-title"><div><h1>Procesamiento multimedia</h1><p class="page-description">Descarga, transcodificación y revisión de archivos.</p></div><span class="page-context">OPERACIONES LOCALES</span></div>
+
+    <section class="section" id="descargas">
+      <div class="section-header"><div><h2 class="section-title">Descarga de medios</h2><p class="section-caption">Detección automática del contenido, formato y salida.</p></div><span class="section-id">01</span></div>
+      <div class="panel download-panel">
+        <div class="tabs" aria-label="Tipo de descarga">
+          <button class="tab selected" type="button" data-mode="video">Video</button>
+          <button class="tab" type="button" data-mode="audio">Audio MP3</button>
+        </div>
+        <label class="form-label" for="media-url">URL de origen</label>
+        <div class="url-row"><div class="input"><span class="input-icon">↗</span><input id="media-url" type="url" placeholder="https://…" autocomplete="url"><button class="url-clear" id="clear-media-url" type="button" aria-label="Borrar enlace" title="Borrar enlace" hidden>×</button></div></div>
+        <div class="analysis-skeleton" id="analysis-skeleton" role="status" aria-live="polite">
+          <div class="skeleton-block skeleton-thumbnail"></div>
+          <div class="skeleton-copy"><div class="skeleton-block skeleton-line short"></div><div class="skeleton-block skeleton-line long"></div><div class="skeleton-block skeleton-line"></div><span class="skeleton-caption" id="analysis-message">Analizando enlace…</span></div>
+          <div class="skeleton-block skeleton-select"></div>
+        </div>
+        <div class="media-row" id="media-row">
+          <div class="thumbnail" id="thumbnail"><span class="play-mark">▶</span><span class="playlist-badge" id="playlist-badge" hidden>PLAYLIST</span><span class="duration" id="duration">--:--</span></div>
+          <div class="media-info"><div class="field-name">Metadatos detectados</div><h3 class="media-title" id="media-title">—</h3><div class="media-byline" id="media-byline">—</div><div class="metadata"><span id="media-kind">—</span><span id="media-format">Contenedor MP4</span><span id="media-list">—</span></div></div>
+          <div class="quality" id="quality-block"><label class="quality-label" for="quality">Resolución máxima</label><select id="quality"></select></div>
+        </div>
+        <div class="panel-footer">
+          <div class="destination"><span>Directorio:</span><strong id="download-directory">Cargando…</strong><button id="browse-download" class="button small" type="button">Cambiar</button><button id="open-download" class="button small" type="button" aria-label="Abrir carpeta">Abrir</button></div>
+          <button id="download-button" class="button primary" type="button">Iniciar descarga</button>
+        </div>
+        <div class="status-line" id="download-status"><div class="progress"><div class="progress-fill" id="download-progress"></div></div><span class="status-message" id="download-message"></span><button id="cancel-download" class="button danger small" type="button">Cancelar</button></div>
+      </div>
+    </section>
+
+    <section class="section" id="optimizador">
+      <div class="section-header"><div><h2 class="section-title">Optimización de video</h2><p class="section-caption">Parámetros de codificación, filtros y salida.</p></div><span class="section-id">02</span></div>
+      <div class="optimizer-grid">
+        <div class="panel settings-panel">
+          <div class="panel-heading"><h3>Parámetros de procesamiento</h3><span>CONFIGURACIÓN</span></div>
+          <div class="setting-group"><p class="setting-label">Codificación</p><div class="setting-list"><label class="setting"><input class="switch" id="compression" type="checkbox" checked>Compresión inteligente</label><label class="setting"><input class="switch" id="anime" type="checkbox">Perfil de animación</label></div></div>
+          <div class="setting-group">
+            <p class="setting-label">Filtros de video</p>
+            <div class="setting-list">
+              <label class="setting"><input class="switch" id="denoise" type="checkbox">Reducción de ruido</label>
+              <label class="setting"><input class="switch" id="sharpen" type="checkbox">Nitidez</label>
+              <label class="setting"><input class="switch" id="interpolation" type="checkbox">Interpolación de cuadros</label>
+              <label class="setting"><input class="switch" id="motion-blur" type="checkbox">Desenfoque de movimiento</label>
+            </div>
+            <div class="select-row" id="fps-options" hidden><label class="select-wrap">FPS<select class="select" id="fps"><option>48</option><option selected>60</option><option>90</option><option>120</option><option>144</option><option>240</option></select></label></div>
+            <div class="select-row" id="motion-blur-options" hidden><label class="select-wrap">Perfil de desenfoque<select class="select" id="motion-preset"><option value="Sutil (Ligero)">Sutil</option><option value="Cinemático (Estándar)" selected>Estándar</option><option value="Intenso (Acción)">Intenso</option></select></label></div>
+          </div>
+          <div class="setting-group"><p class="setting-label">Audio</p><div class="setting-list"><label class="setting"><input class="switch" id="normalize-audio" type="checkbox">Normalización de volumen</label></div></div>
+        </div>
+        <div class="panel file-panel">
+          <div class="panel-heading"><h3>Archivo de entrada</h3><span>MP4 · MOV · MKV · AVI</span></div>
+          <div class="drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Arrastra o selecciona un archivo de video"><img class="drop-preview" id="drop-preview" alt="" hidden><div class="drop-prompt"><strong>Arrastra un archivo de video</strong><p>o selecciona un archivo local</p></div><div class="drop-file-caption" id="drop-file-caption"></div><button class="button small drop-clear" id="clear-input-file" type="button" hidden>Quitar archivo</button></div>
+          <div class="file-row" id="input-file-row"><div class="file-icon" id="input-extension">—</div><div class="file-copy"><div class="file-name" id="input-name">—</div><div class="file-meta" id="input-meta">—</div></div><span class="file-state">Seleccionado</span></div>
+          <div class="output-row"><span class="output-path" id="optimized-directory">Salida: cargando…</span><button id="browse-optimized" class="button small" type="button">Cambiar</button></div>
+          <div class="output-row"><span class="output-path">Contenedor MP4 · H.264 / AAC</span><button id="select-input" class="button small" type="button">Seleccionar archivo</button><button id="process-video" class="button primary small" type="button">Procesar</button></div>
+          <div class="status-line" id="optimizer-status"><div class="progress"><div class="progress-fill" id="optimizer-progress"></div></div><span class="status-message" id="optimizer-message"></span><button id="cancel-optimizer" class="button danger small" type="button">Cancelar</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="comparador">
+      <div class="section-header"><div><h2 class="section-title">Comparador</h2><p class="section-caption">Reproducción sincronizada de los archivos de origen y salida.</p></div><span class="section-id">03</span></div>
+      <div class="panel compare-panel">
+        <div class="panel-heading"><h3>Vista de comparación</h3><button id="compare-fullscreen" class="button small" type="button" disabled aria-label="Pantalla completa" title="Ver comparación en pantalla completa">⛶ Pantalla completa</button></div>
+        <div class="compare-viewers">
+          <div class="viewer" id="original-viewer"><img class="viewer-preview" id="original-preview" alt="" hidden><video id="original-video" preload="metadata"></video><span class="viewer-label">Original</span><span class="viewer-play">▶</span><div class="viewer-caption"><span id="original-caption">Selecciona un archivo de entrada</span><span>Origen</span></div></div>
+          <div class="viewer optimized" id="processed-viewer"><img class="viewer-preview" id="processed-preview" alt="" hidden><video id="processed-video" preload="metadata"></video><span class="viewer-label">Procesado</span><span class="viewer-play">▶</span><div class="processing-indicator" id="processing-indicator" hidden><span class="processing-spinner" aria-hidden="true"></span><span id="processing-message">Preparando procesamiento…</span><div class="processing-track"><div class="processing-fill" id="compare-processing-progress"></div></div></div><div class="viewer-caption"><span id="processed-caption">Pendiente de procesamiento</span><span>Salida</span></div></div>
+        </div>
+        <div class="compare-controls"><button id="sync-play" class="control" type="button" aria-label="Reproducir o pausar" disabled>▶</button><span class="timecode" id="current-time">00:00</span><input id="compare-timeline" class="timeline" type="range" min="0" max="1000" value="0" aria-label="Posición de reproducción" disabled><span class="timecode" id="total-time">00:00</span></div>
+      </div>
+    </section>
+    <div class="footnote">CsTools · Procesamiento local</div>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const $ = (selector) => document.querySelector(selector);
+    const state = { mode: "video", config: null, inputPath: "", inputThumbnail: "", inputSelectionGeneration: 0, compareOriginal: "", compareProcessed: "", metadata: null, analyzeTask: null, analyzeTimer: null, analysisGeneration: 0, downloadTask: null, optimizerTask: null, optimizerInputPath: "", toastTimer: null, updateTask: null };
+    const apiReady = new Promise((resolve) => {
+      if (window.pywebview?.api) resolve(window.pywebview.api);
+      else window.addEventListener("pywebviewready", () => resolve(window.pywebview.api), { once: true });
+    });
+
+    function showToast(message, isError = false) {
+      const toast = $("#toast");
+      toast.textContent = message;
+      toast.classList.toggle("error", isError);
+      toast.classList.add("visible");
+      clearTimeout(state.toastTimer);
+      state.toastTimer = setTimeout(() => toast.classList.remove("visible"), 5000);
+    }
+
+    function basename(path) { return path.split(/[\\/]/).filter(Boolean).pop() || path; }
+    function showInputFile(path, thumbnail = null, mediaUrl = null) {
+      const changed = state.inputPath !== path;
+      if (changed) {
+        state.inputThumbnail = "";
+        setComparisonPath("original", path);
+        clearComparisonPath("processed", "Pendiente de procesamiento");
+      }
+      state.inputPath = path;
+      if (thumbnail) state.inputThumbnail = thumbnail;
+      $("#input-file-row").classList.add("visible");
+      $("#input-name").textContent = basename(path);
+      $("#input-extension").textContent = basename(path).split(".").pop().toUpperCase();
+      $("#input-meta").textContent = path;
+      $("#drop-file-caption").textContent = basename(path);
+      $("#drop-zone").classList.add("has-file");
+      $("#clear-input-file").hidden = false;
+      const preview = $("#drop-preview");
+      preview.hidden = !thumbnail;
+      if (thumbnail) preview.src = thumbnail;
+      else preview.removeAttribute("src");
+      if (mediaUrl) setComparisonPath("original", path, mediaUrl);
+      if (state.inputThumbnail) {
+        setComparisonPreview("original", state.inputThumbnail);
+        setComparisonPreview("processed", state.inputThumbnail);
+      }
+      if (changed) setComparisonPending(true);
+    }
+
+    function clearInputFile() {
+      state.inputSelectionGeneration += 1;
+      state.inputPath = "";
+      state.inputThumbnail = "";
+      $("#input-file-row").classList.remove("visible");
+      $("#drop-zone").classList.remove("has-file");
+      $("#clear-input-file").hidden = true;
+      $("#drop-file-caption").textContent = "";
+      const preview = $("#drop-preview");
+      preview.removeAttribute("src");
+      preview.hidden = true;
+      clearComparisonPath("original", "Selecciona un archivo de entrada");
+      clearComparisonPath("processed", "Pendiente de procesamiento");
+    }
+
+    function validateDroppedInput(path) {
+      const generation = ++state.inputSelectionGeneration;
+      showInputFile(path);
+      apiReady.then((api) => api.prepare_input_file(path)).then((result) => {
+        if (generation !== state.inputSelectionGeneration) return;
+        showInputFile(result.path, result.thumbnail, result.media_url);
+        if (result.preview_error) {
+          showToast("El archivo está seleccionado, pero no se pudo crear su vista previa: " + result.preview_error, true);
+        }
+      }).catch((error) => {
+        if (generation !== state.inputSelectionGeneration) return;
+        clearInputFile();
+        showToast(error.message || String(error), true);
+      });
+    }
+
+    function updateDownloadDirectory() {
+      if (!state.config) return;
+      $("#download-directory").textContent = state.mode === "audio" ? state.config.dir_audio : state.config.dir_video;
+    }
+
+    async function initialize() {
+      const api = await apiReady;
+      try {
+        state.config = await api.get_config();
+        $("#app-version").textContent = "v" + await api.get_app_version();
+        updateDownloadDirectory();
+        $("#optimized-directory").textContent = "Salida: " + state.config.dir_optimized;
+      } catch (error) {
+        showToast(error.message || String(error), true);
+      }
+    }
+
+    function setMode(mode) {
+      state.mode = mode;
+      state.metadata = null;
+      $("#media-row").classList.remove("visible");
+      updateDownloadDirectory();
+      $("#quality-block").hidden = mode === "audio";
+      document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("selected", tab.dataset.mode === mode));
+      $("#download-button").textContent = mode === "audio" ? "Iniciar extracción MP3" : "Iniciar descarga";
+      scheduleAnalysis(0);
+    }
+
+    async function checkUpdates() {
+      const button = $("#check-updates");
+      button.disabled = true;
+      try {
+        const api = await apiReady;
+        const taskId = await api.start_update_check();
+        const result = await pollTask(taskId, { onUpdate: (task) => { button.textContent = task.message; } });
+        if (!result.available) { showToast("Ya tienes la versión más reciente de CsTools."); return; }
+        const release = result.release;
+        $("#update-summary").textContent = `Versión ${release.version} disponible (actual: ${result.current_version}).`;
+        $("#update-notes").textContent = release.notes || "No se publicaron notas para esta versión.";
+        $("#update-notes").hidden = false;
+        $("#install-update").hidden = false;
+        $("#update-banner").classList.add("visible");
+      } catch (error) {
+        showToast(error.message || String(error), true);
+      } finally {
+        button.disabled = false;
+        button.textContent = "Buscar actualizaciones";
+      }
+    }
+
+    async function installUpdate() {
+      if (!confirm("Se descargará el instalador oficial de GitHub y se verificará antes de ejecutarlo. ¿Continuar?")) return;
+      const button = $("#install-update");
+      button.disabled = true;
+      try {
+        const api = await apiReady;
+        const taskId = await api.start_update_install();
+        await pollTask(taskId, { onUpdate: (task) => { button.textContent = task.message; } });
+        showToast("Instalador verificado e iniciado. CsTools se cerrará para completar la actualización.");
+        setTimeout(() => window.close(), 1200);
+      } catch (error) {
+        showToast(error.message || String(error), true);
+        button.disabled = false;
+        button.textContent = "Descargar e instalar";
+      }
+    }
+    $("#check-updates").addEventListener("click", checkUpdates);
+    $("#install-update").addEventListener("click", installUpdate);
+
+    function formatDuration(seconds) {
+      if (!Number.isFinite(Number(seconds))) return "—";
+      const value = Math.max(0, Math.floor(Number(seconds)));
+      const hours = Math.floor(value / 3600);
+      const minutes = Math.floor((value % 3600) / 60);
+      const remaining = value % 60;
+      return hours ? `${hours}:${String(minutes).padStart(2, "0")}:${String(remaining).padStart(2, "0")}` : `${minutes}:${String(remaining).padStart(2, "0")}`;
+    }
+
+    function showMetadata(data) {
+      state.metadata = data;
+      $("#analysis-skeleton").classList.remove("visible");
+      $("#media-row").classList.add("visible");
+      $("#media-title").textContent = data.title || "Sin título";
+      $("#media-byline").textContent = data.uploader || "Desconocido";
+      $("#duration").textContent = formatDuration(data.duration);
+      $("#media-kind").textContent = data.is_playlist ? "Lista de reproducción" : (state.mode === "audio" ? "Audio" : "Video");
+      $("#media-format").textContent = state.mode === "audio" ? "Salida MP3" : "Salida MP4";
+      $("#media-list").textContent = data.is_playlist
+        ? `${Math.min(data.thumbnails?.length || 0, 4)} portadas de vista previa`
+        : "Elemento individual";
+      const thumbnail = $("#thumbnail");
+      thumbnail.querySelectorAll("img").forEach((image) => image.remove());
+      thumbnail.classList.toggle("playlist-collage", data.is_playlist);
+      $("#playlist-badge").hidden = !data.is_playlist;
+      $("#duration").hidden = data.is_playlist;
+      const previewImages = data.is_playlist
+        ? (data.thumbnails?.length ? data.thumbnails.slice(0, 4) : [data.thumbnail])
+        : [data.thumbnail];
+      previewImages.filter(Boolean).forEach((url, index) => {
+        const image = new Image();
+        image.alt = data.is_playlist
+          ? `Portada ${index + 1} de la playlist`
+          : "Miniatura del contenido";
+        image.referrerPolicy = "no-referrer";
+        image.src = url;
+        image.addEventListener("error", () => image.remove(), { once: true });
+        image.className = data.is_playlist ? `collage-item collage-item-${index + 1}` : "";
+        thumbnail.insertBefore(image, thumbnail.querySelector(".play-mark"));
+      });
+      const quality = $("#quality");
+      quality.replaceChildren();
+      const options = data.formats?.length ? data.formats : [0];
+      for (const height of options) {
+        const option = document.createElement("option");
+        option.value = String(height);
+        option.textContent = height ? `${height}p` : "Mejor disponible";
+        quality.append(option);
+      }
+      $("#media-row").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    async function pollTask(taskId, callbacks) {
+      const api = await apiReady;
+      let task;
+      do {
+        await new Promise((resolve) => setTimeout(resolve, 350));
+        task = await api.get_task(taskId);
+        callbacks.onUpdate?.(task);
+      } while (task.status === "running");
+      if (task.status === "failed") throw new Error(task.error || task.message || "La operación falló.");
+      if (task.status === "cancelled") throw new Error(task.message || "Operación cancelada.");
+      return task.result;
+    }
+
+    function updateTaskDisplay(prefix, task) {
+      const row = $("#" + prefix + "-status");
+      row.classList.add("visible");
+      $("#" + prefix + "-progress").style.width = `${Math.round(task.progress * 100)}%`;
+      $("#" + prefix + "-message").textContent = task.message;
+      if (prefix === "optimizer" && state.inputPath === state.optimizerInputPath) {
+        setComparisonProcessing(true, task.progress, task.message);
+      }
+    }
+
+    function isValidWebUrl(value) {
+      try {
+        const url = new URL(value);
+        return (url.protocol === "http:" || url.protocol === "https:") && Boolean(url.hostname);
+      } catch {
+        return false;
+      }
+    }
+
+    function scheduleAnalysis(delay = 100) {
+      clearTimeout(state.analyzeTimer);
+      state.analysisGeneration += 1;
+      const generation = state.analysisGeneration;
+      const activeTask = state.analyzeTask;
+      state.analyzeTask = null;
+      if (activeTask) {
+        apiReady.then((api) => api.cancel_task(activeTask)).catch((error) => showToast(error.message || String(error), true));
+      }
+      $("#media-row").classList.remove("visible");
+      const url = $("#media-url").value.trim();
+      if (!isValidWebUrl(url)) {
+        $("#analysis-skeleton").classList.remove("visible");
+        return;
+      }
+      $("#analysis-message").textContent = "Analizando enlace…";
+      $("#analysis-skeleton").classList.add("visible");
+      state.analyzeTimer = setTimeout(() => analyzeUrl(url, generation), delay);
+    }
+
+    async function analyzeUrl(url, generation) {
+      const api = await apiReady;
+      if (generation !== state.analysisGeneration) return;
+      const mode = state.mode;
+      $("#analysis-message").textContent = "Analizando enlace…";
+      $("#analysis-skeleton").classList.add("visible");
+      let taskId = null;
+      try {
+        taskId = await api.analyze_url(url, mode);
+        if (generation !== state.analysisGeneration) {
+          await api.cancel_task(taskId);
+          return;
+        }
+        state.analyzeTask = taskId;
+        const result = await pollTask(taskId, {
+          onUpdate: (task) => {
+            if (generation === state.analysisGeneration) $("#analysis-message").textContent = task.message;
+          },
+        });
+        if (generation === state.analysisGeneration && state.mode === mode && $("#media-url").value.trim() === url) showMetadata(result);
+      } catch (error) {
+        if (generation === state.analysisGeneration) showToast(error.message || String(error), true);
+      } finally {
+        if (state.analyzeTask === taskId) state.analyzeTask = null;
+        if (generation === state.analysisGeneration) $("#analysis-skeleton").classList.remove("visible");
+      }
+    }
+
+    async function startDownload() {
+      const url = $("#media-url").value.trim();
+      if (!url) return showToast("Introduce la URL del contenido.", true);
+      const api = await apiReady;
+      const mode = state.mode;
+      $("#download-button").disabled = true;
+      $("#download-status").classList.add("visible");
+      $("#download-progress").style.width = "0%";
+      try {
+        const quality = mode === "audio" ? 0 : Number($("#quality").value || 0);
+        state.downloadTask = await api.start_download(url, mode, quality);
+        const result = await pollTask(state.downloadTask, { onUpdate: (task) => updateTaskDisplay("download", task) });
+        showToast(mode === "audio" ? "Extracción MP3 completada." : "Descarga completada.");
+        if (result?.directory && state.mode === mode) $("#download-directory").textContent = result.directory;
+      } catch (error) {
+        showToast(error.message || String(error), true);
+      } finally {
+        state.downloadTask = null;
+        $("#download-button").disabled = false;
+      }
+    }
+
+    async function cancelDownload() {
+      if (!state.downloadTask) return;
+      try { await (await apiReady).cancel_task(state.downloadTask); }
+      catch (error) { showToast(error.message || String(error), true); }
+    }
+
+    async function selectInputFile() {
+      try {
+        const path = await (await apiReady).select_input_file();
+        if (!path) return;
+        validateDroppedInput(path);
+      } catch (error) {
+        showToast(error.message || String(error), true);
+      }
+    }
+
+    function optimizerSettings() {
+      return {
+        compression: $("#compression").checked,
+        anime: $("#anime").checked,
+        denoise: $("#denoise").checked,
+        sharpen: $("#sharpen").checked,
+        interpolation: $("#interpolation").checked,
+        motion_blur: $("#motion-blur").checked,
+        normalize_audio: $("#normalize-audio").checked,
+        fps: $("#fps").value,
+        motion_blur_preset: $("#motion-preset").value,
+      };
+    }
+
+    function updateProcessingDependencies() {
+      $("#fps-options").hidden = !$("#interpolation").checked;
+      $("#motion-blur-options").hidden = !$("#motion-blur").checked;
+    }
+
+    async function startOptimization() {
+      if (!state.inputPath) return showToast("Selecciona un archivo de video.", true);
+      const api = await apiReady;
+      const inputPath = state.inputPath;
+      state.optimizerInputPath = inputPath;
+      $("#process-video").disabled = true;
+      $("#optimizer-status").classList.add("visible");
+      $("#optimizer-progress").style.width = "0%";
+      clearComparisonPath("processed", "Procesando…");
+      setComparisonProcessing(true, 0, "Preparando procesamiento…");
+      try {
+        state.optimizerTask = await api.start_optimization(inputPath, optimizerSettings());
+        const result = await pollTask(state.optimizerTask, {
+          onUpdate: (task) => {
+            updateTaskDisplay("optimizer", task);
+            if (state.inputPath !== inputPath) setComparisonProcessing(false);
+          },
+        });
+        showToast("Procesamiento completado.");
+        if (result?.output_path && state.inputPath === inputPath) {
+          const outputPreviewUrl = await api.create_media_preview(result.output_path);
+          setComparisonPath("processed", result.output_path, outputPreviewUrl);
+          setComparisonProcessing(false);
+          $("#comparador").scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      } catch (error) {
+        setComparisonProcessing(false);
+        if (state.inputPath === inputPath) $("#processed-caption").textContent = "Procesamiento detenido";
+        showToast(error.message || String(error), true);
+      } finally {
+        state.optimizerTask = null;
+        state.optimizerInputPath = "";
+        $("#process-video").disabled = false;
+      }
+    }
+
+    async function cancelOptimization() {
+      if (!state.optimizerTask) return;
+      try { await (await apiReady).cancel_task(state.optimizerTask); }
+      catch (error) { showToast(error.message || String(error), true); }
+    }
+
+    async function changeDirectory(kind) {
+      try {
+        state.config = await (await apiReady).select_directory(kind);
+        if (kind === "optimized") $("#optimized-directory").textContent = "Salida: " + state.config.dir_optimized;
+        else updateDownloadDirectory();
+      } catch (error) {
+        showToast(error.message || String(error), true);
+      }
+    }
+
+    function setComparisonPath(which, path, mediaUrl = null) {
+      const video = which === "original" ? $("#original-video") : $("#processed-video");
+      const caption = which === "original" ? $("#original-caption") : $("#processed-caption");
+      if (which === "original") state.compareOriginal = path;
+      else {
+        state.compareProcessed = path;
+        $("#processed-viewer").classList.remove("pending", "processing");
+        $("#processed-viewer").style.removeProperty("--processing-blur");
+        $("#processing-indicator").hidden = true;
+        setComparisonPreview("processed", "");
+      }
+      video.pause();
+      video.classList.remove("ready");
+      video.dataset.path = path;
+      video.muted = which === "original";
+      if (mediaUrl) video.src = mediaUrl;
+      else video.removeAttribute("src");
+      video.load();
+      caption.textContent = basename(path);
+      updateTotalDuration();
+      updateCompareControls();
+    }
+
+    function clearComparisonPath(which, captionText) {
+      const video = which === "original" ? $("#original-video") : $("#processed-video");
+      const caption = which === "original" ? $("#original-caption") : $("#processed-caption");
+      if (which === "original") state.compareOriginal = "";
+      else state.compareProcessed = "";
+      video.pause();
+      video.removeAttribute("src");
+      delete video.dataset.path;
+      video.classList.remove("ready");
+      video.load();
+      caption.textContent = captionText;
+      setComparisonPreview(which, which === "processed" ? state.inputThumbnail : "");
+      if (which === "processed") setComparisonPending(Boolean(state.inputPath));
+      updateTotalDuration();
+      updateCompareControls();
+    }
+
+    function setComparisonPreview(which, thumbnail) {
+      const preview = which === "original" ? $("#original-preview") : $("#processed-preview");
+      if (thumbnail) preview.src = thumbnail;
+      else preview.removeAttribute("src");
+      preview.hidden = !thumbnail;
+    }
+
+    function updateCompareControls() {
+      const enabled = Boolean(
+        state.compareOriginal &&
+        state.compareProcessed &&
+        $("#original-video").readyState >= HTMLMediaElement.HAVE_CURRENT_DATA &&
+        $("#processed-video").readyState >= HTMLMediaElement.HAVE_CURRENT_DATA
+      );
+      $("#sync-play").disabled = !enabled;
+      $("#compare-timeline").disabled = !enabled;
+      $("#compare-fullscreen").disabled = !enabled;
+    }
+
+    function setComparisonPending(active) {
+      const viewer = $("#processed-viewer");
+      viewer.classList.toggle("pending", active);
+      if (active) viewer.style.setProperty("--processing-blur", "18px");
+      else if (!viewer.classList.contains("processing")) viewer.style.removeProperty("--processing-blur");
+    }
+
+    function setComparisonProcessing(active, progress = 0, message = "") {
+      const viewer = $("#processed-viewer");
+      const boundedProgress = Math.max(0, Math.min(Number(progress) || 0, 1));
+      viewer.classList.toggle("processing", active);
+      viewer.classList.toggle("pending", !active && Boolean(state.inputPath && !state.compareProcessed));
+      if (active || viewer.classList.contains("pending")) {
+        viewer.style.setProperty("--processing-blur", `${Math.max(0.5, 18 * (1 - boundedProgress))}px`);
+      } else {
+        viewer.style.removeProperty("--processing-blur");
+      }
+      $("#processing-indicator").hidden = !active;
+      $("#processing-message").textContent = message || `Procesando salida · ${Math.round(boundedProgress * 100)}%`;
+      $("#compare-processing-progress").style.width = `${Math.round(boundedProgress * 100)}%`;
+    }
+
+    function updateTotalDuration() {
+      $("#total-time").textContent = formatDuration(Math.max($("#original-video").duration || 0, $("#processed-video").duration || 0));
+    }
+
+    function syncTime(from, to) {
+      if (!Number.isFinite(from.currentTime) || !Number.isFinite(to.duration) || !to.duration) return;
+      if (Math.abs(to.currentTime - from.currentTime) > .35) to.currentTime = Math.min(from.currentTime, to.duration);
+    }
+
+    function formatClock(seconds) {
+      if (!Number.isFinite(seconds)) return "00:00";
+      const whole = Math.floor(seconds);
+      return `${String(Math.floor(whole / 60)).padStart(2, "0")}:${String(whole % 60).padStart(2, "0")}`;
+    }
+
+    async function toggleComparePlayback() {
+      const original = $("#original-video");
+      const processed = $("#processed-video");
+      if (!state.compareOriginal || !state.compareProcessed) return showToast("Carga y procesa un video antes de compararlo.", true);
+      if (original.paused) {
+        try {
+          if (original.ended || processed.ended) {
+            original.currentTime = 0;
+            processed.currentTime = 0;
+          } else {
+            processed.currentTime = Math.min(original.currentTime, processed.duration || original.currentTime);
+          }
+          await Promise.all([original.play(), processed.play()]);
+        } catch (error) {
+          original.pause();
+          processed.pause();
+          showToast("No se pudieron reproducir ambos archivos: " + (error.message || error), true);
+        }
+      } else {
+        original.pause();
+        processed.pause();
+        $("#sync-play").textContent = "▶";
+      }
+    }
+
+    async function toggleComparisonFullscreen() {
+      const panel = $(".compare-panel");
+      const fullscreen = document.fullscreenElement === panel;
+      const expanded = panel.classList.contains("compare-expanded");
+      if (fullscreen || expanded) {
+        if (fullscreen && document.exitFullscreen) await document.exitFullscreen();
+        panel.classList.remove("compare-expanded");
+        document.body.classList.remove("compare-expanded");
+        updateComparisonFullscreenButton();
+        return;
+      }
+
+      if (panel.requestFullscreen) {
+        try {
+          await panel.requestFullscreen();
+          updateComparisonFullscreenButton();
+          return;
+        } catch (_error) {
+          // A CSS-expanded view keeps the feature available in WebViews without Fullscreen API support.
+        }
+      }
+      panel.classList.add("compare-expanded");
+      document.body.classList.add("compare-expanded");
+      updateComparisonFullscreenButton();
+    }
+
+    function updateComparisonFullscreenButton() {
+      const panel = $(".compare-panel");
+      const expanded = document.fullscreenElement === panel || panel.classList.contains("compare-expanded");
+      $("#compare-fullscreen").textContent = expanded ? "⛶ Salir de pantalla completa" : "⛶ Pantalla completa";
+      $("#compare-fullscreen").setAttribute("aria-label", expanded ? "Salir de pantalla completa" : "Pantalla completa");
+    }
+
+document.querySelectorAll(".tab").forEach((tab) => tab.addEventListener("click", () => setMode(tab.dataset.mode)));
+    $("#media-url").addEventListener("input", () => {
+      $("#clear-media-url").hidden = !$("#media-url").value;
+      scheduleAnalysis();
+    });
+    $("#media-url").addEventListener("paste", () => setTimeout(() => scheduleAnalysis(0), 0));
+    $("#clear-media-url").addEventListener("click", () => {
+      $("#media-url").value = "";
+      $("#clear-media-url").hidden = true;
+      scheduleAnalysis(0);
+      $("#media-url").focus();
+    });
+    $("#media-url").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        scheduleAnalysis(0);
+      }
+    });
+    $("#download-button").addEventListener("click", startDownload);
+    $("#cancel-download").addEventListener("click", cancelDownload);
+    $("#browse-download").addEventListener("click", () => changeDirectory(state.mode === "audio" ? "audio" : "video"));
+    $("#open-download").addEventListener("click", async () => {
+      try { await (await apiReady).open_output_directory(state.mode === "audio" ? "audio" : "video"); }
+      catch (error) { showToast(error.message || String(error), true); }
+    });
+    $("#select-input").addEventListener("click", selectInputFile);
+    $("#drop-zone").addEventListener("click", selectInputFile);
+    $("#drop-zone").addEventListener("keydown", (event) => {
+      if (event.target === $("#drop-zone") && (event.key === "Enter" || event.key === " ")) {
+        event.preventDefault();
+        selectInputFile();
+      }
+    });
+    $("#drop-zone").addEventListener("dragover", (event) => { event.preventDefault(); $("#drop-zone").classList.add("drag-over"); });
+    $("#drop-zone").addEventListener("dragleave", () => { $("#drop-zone").classList.remove("drag-over"); });
+    window.addEventListener("cstools-file-drop", (event) => {
+      $("#drop-zone").classList.remove("drag-over");
+      const path = event.detail?.[0];
+      if (!path) return;
+      validateDroppedInput(path);
+    });
+    $("#clear-input-file").addEventListener("click", (event) => {
+      event.stopPropagation();
+      clearInputFile();
+    });
+    $("#interpolation").addEventListener("change", updateProcessingDependencies);
+    $("#motion-blur").addEventListener("change", updateProcessingDependencies);
+    $("#browse-optimized").addEventListener("click", () => changeDirectory("optimized"));
+    $("#process-video").addEventListener("click", startOptimization);
+    $("#cancel-optimizer").addEventListener("click", cancelOptimization);
+    $("#sync-play").addEventListener("click", toggleComparePlayback);
+    $("#compare-fullscreen").addEventListener("click", toggleComparisonFullscreen);
+    document.addEventListener("fullscreenchange", () => {
+      const panel = $(".compare-panel");
+      if (document.fullscreenElement !== panel) {
+        panel.classList.remove("compare-expanded");
+        document.body.classList.remove("compare-expanded");
+      }
+      updateComparisonFullscreenButton();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !document.fullscreenElement) {
+        $(".compare-panel").classList.remove("compare-expanded");
+        document.body.classList.remove("compare-expanded");
+        updateComparisonFullscreenButton();
+      }
+    });
+    ["original", "processed"].forEach((which) => {
+      const video = $(`#${which}-video`);
+      const viewer = $(`#${which}-viewer`);
+      video.addEventListener("play", () => viewer.classList.add("playing"));
+      video.addEventListener("pause", () => viewer.classList.remove("playing"));
+      video.addEventListener("ended", () => viewer.classList.remove("playing"));
+      video.addEventListener("loadeddata", () => {
+        video.classList.add("ready");
+        updateTotalDuration();
+        updateCompareControls();
+      });
+      video.addEventListener("error", () => {
+        video.classList.remove("ready");
+        updateCompareControls();
+        if (video.dataset.path) showToast(`No se pudo cargar la vista previa de ${basename(video.dataset.path)}.`, true);
+      });
+    });
+    $("#original-video").addEventListener("timeupdate", () => {
+      const original = $("#original-video");
+      const processed = $("#processed-video");
+      syncTime(original, processed);
+      $("#current-time").textContent = formatClock(original.currentTime);
+      const duration = Math.max(original.duration || 0, processed.duration || 0);
+      $("#compare-timeline").value = duration ? String(Math.round(original.currentTime / duration * 1000)) : "0";
+    });
+    $("#processed-video").addEventListener("timeupdate", () => syncTime($("#processed-video"), $("#original-video")));
+    $("#original-video").addEventListener("ended", () => {
+      $("#processed-video").pause();
+      $("#sync-play").textContent = "▶";
+    });
+    $("#processed-video").addEventListener("ended", () => {
+      $("#original-video").pause();
+      $("#sync-play").textContent = "▶";
+    });
+    $("#compare-timeline").addEventListener("input", (event) => {
+      const duration = Math.max($("#original-video").duration || 0, $("#processed-video").duration || 0);
+      if (!duration) return;
+      const time = Number(event.target.value) / 1000 * duration;
+      const original = $("#original-video");
+      const processed = $("#processed-video");
+      if (Number.isFinite(original.duration)) original.currentTime = Math.min(time, original.duration);
+      if (Number.isFinite(processed.duration)) processed.currentTime = Math.min(time, processed.duration);
+    });
+    $("#original-video").addEventListener("play", () => { $("#sync-play").textContent = "Ⅱ"; });
+    $("#original-video").addEventListener("pause", () => { $("#sync-play").textContent = "▶"; });
+    $("#original-video").addEventListener("loadedmetadata", updateTotalDuration);
+    $("#processed-video").addEventListener("loadedmetadata", updateTotalDuration);
+    updateProcessingDependencies();
+    initialize();
+  </script>
+</body>
+</html>
